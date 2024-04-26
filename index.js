@@ -23,7 +23,7 @@ app.get('/search', async (req, res) => {
     if (scrapedData) {
       res.json({ ...scrapedData, link: marketScreenerLink });
     } else {
-      res.status(404).send('Valuation data not found');
+      res.status(404).send('Scraped data not found');
     }
   } catch (error) {
     if (error.message === 'MarketScreener Link Not Found') {

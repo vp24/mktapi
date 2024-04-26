@@ -9,7 +9,7 @@ async function getMarketScreenerLink(ticker) {
       params: {
         key: config.API_KEY, 
         cx: config.SEARCH_ENGINE_ID, 
-        q: `marketscreener ${ticker} summary`
+        q: `marketscreener ${ticker} summary us`
       }
     });
 
