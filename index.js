@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { getMarketScreenerLink } = require('./services/googleService');
 const { scrapeMarketScreenerData } = require('./services/marketscreenerService');
 const User = require('./models/userModel');
@@ -72,7 +73,8 @@ app.post('/register', async (req, res) => {
     if (existingUser) {
       return res.status(409).json({ error: 'Username already exists' });
     }
-    const user = new User({ username, password });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, password: hashedPassword });
     await user.save();
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
@@ -88,7 +90,7 @@ app.post('/login', async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
