@@ -8,7 +8,6 @@ async function scrapeMarketScreenerData(marketScreenerLink) {
 
     const valuationSectionHTML = $('#fundamental-valorisation').html();
     const iseECardHTML = $('#chart_ise_e_card').html();
-    const iseQCardHTML = $('#chart_ise_q_card').html();
     const bsaACardHTML = $('#chart_bsa_a_card').html();
 
     const scrapedData = {};
@@ -25,23 +24,16 @@ async function scrapeMarketScreenerData(marketScreenerLink) {
       console.log('ISE E Card section not found');
     }
 
-    if (iseQCardHTML) {
-      scrapedData.iseQCardHTML = iseQCardHTML;
-    } else {
-      console.log('ISE Q Card section not found');
-    }
-
     if (bsaACardHTML) {
       scrapedData.bsaACardHTML = bsaACardHTML;
     } else {
       console.log('BSA A Card section not found');
     }
 
-    //console.log('Scraped Data:', scrapedData); // Log the scraped data
-    return scrapedData; // Return the scraped data
+    return scrapedData;
   } catch (error) {
     console.error('Error scraping MarketScreener:', error);
-    throw error; // Throw the error to be handled by the caller
+    throw error;
   }
 }
 
