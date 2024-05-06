@@ -40,23 +40,7 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-const errorHandler = (err, req, res, next) => {
-  const error = err || { statusCode: 500, message: 'Internal Server Error' };
-
-  console.error('Error:', error);
-
-  const statusCode = error.statusCode || 500;
-  const message = error.message || 'Internal Server Error';
-
-  res.status(statusCode).json({
-    error: {
-      statusCode,
-      message,
-    },
-  });
-};
-
-app.get('/search', authMiddleware, async (req, res, next) => {
+app.get('/search', authMiddleware, async (req, res) => {
   const ticker = req.query.ticker;
 
   if (!ticker) {
@@ -73,26 +57,25 @@ app.get('/search', authMiddleware, async (req, res, next) => {
       res.status(404).send('Scraped data not found');
     }
   } catch (error) {
-    next(error);
+    if (error.message === 'MarketScreener Link Not Found') {
+      res.status(404).send('MarketScreener link not found');
+    } else {
+      console.error('Error fetching data:', error);
+      res.status(500).send('Error fetching data');
+    }
   }
 });
 
 app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log('Received registration request for username:', username);
-
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      console.log('Username already exists:', username);
       return res.status(409).json({ error: 'Username already exists' });
     }
-
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ username, password: hashedPassword });
     await user.save();
-
-    console.log('User registered successfully:', username);
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -103,44 +86,20 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log('Received login request for username:', username);
-    console.log('Password provided:', password); // Add this line
     const user = await User.findOne({ username });
     if (!user) {
-      console.log('User not found:', username);
       return res.status(401).json({ error: 'Invalid username or password' });
     }
-
-    console.log('Hashed password from the database:', user.password); // Add this line
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log('Password comparison result:', isPasswordValid); // Add this line
     if (!isPasswordValid) {
-      console.log('Invalid password for user:', username);
       return res.status(401).json({ error: 'Invalid username or password' });
     }
-
-    const token = jwt.sign({ userId: user._id }, 'snekKey');
-    console.log('Login successful for user:', username);
+    const token = jwt.sign({ userId: user._id }, 'your-secret-key');
     res.json({ token, username: user.username });
   } catch (error) {
     console.error('Error logging in:', error);
-    res.status(500).json({ error: 'An error occurred while logging in' });
+    res.status(500).json({ error: 'Error logging in' });
   }
-});
-
-// Error handling middleware
-app.use(errorHandler);
-
-// Error handling for uncaught exceptions
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
 });
 
 app.listen(port, () => {
