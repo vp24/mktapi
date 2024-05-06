@@ -90,7 +90,8 @@ app.post('/login', async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.comparePassword(password); // Use comparePassword method
+    console.log('isPasswordValid:', isPasswordValid); // Debug log
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
@@ -101,6 +102,7 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Error logging in' });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
