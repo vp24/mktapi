@@ -86,22 +86,25 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log('Received login request for username:', username);
+
     const user = await User.findOne({ username });
     if (!user) {
+      console.log('User not found:', username);
       return res.status(401).json({ error: 'Invalid username or password' });
     }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      console.log('Invalid password for user:', username);
       return res.status(401).json({ error: 'Invalid username or password' });
     }
+
     const token = jwt.sign({ userId: user._id }, 'your-secret-key');
+    console.log('Login successful for user:', username);
     res.json({ token, username: user.username });
   } catch (error) {
     console.error('Error logging in:', error);
-    res.status(500).json({ error: 'Error logging in' });
+    res.status(500).json({ error: 'An error occurred while logging in' });
   }
-});
-
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
 });
