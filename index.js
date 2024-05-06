@@ -69,13 +69,19 @@ app.get('/search', authMiddleware, async (req, res) => {
 app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log('Received registration request for username:', username);
+
     const existingUser = await User.findOne({ username });
     if (existingUser) {
+      console.log('Username already exists:', username);
       return res.status(409).json({ error: 'Username already exists' });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ username, password: hashedPassword });
     await user.save();
+
+    console.log('User registered successfully:', username);
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -107,4 +113,8 @@ app.post('/login', async (req, res) => {
     console.error('Error logging in:', error);
     res.status(500).json({ error: 'An error occurred while logging in' });
   }
+});
+
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
