@@ -115,7 +115,7 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    const token = jwt.sign({ userId: user._id }, 'your-secret-key');
+    const token = jwt.sign({ userId: user._id }, 'snekKey');
     console.log('Login successful for user:', username);
     res.json({ token, username: user.username });
   } catch (error) {
