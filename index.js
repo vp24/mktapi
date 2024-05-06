@@ -40,7 +40,21 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-app.get('/search', authMiddleware, async (req, res) => {
+const errorHandler = (err, req, res, next) => {
+  console.error('Error:', err);
+
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+
+  res.status(statusCode).json({
+    error: {
+      statusCode,
+      message,
+    },
+  });
+};
+
+app.get('/search', authMiddleware, async (req, res, next) => {
   const ticker = req.query.ticker;
 
   if (!ticker) {
@@ -57,12 +71,7 @@ app.get('/search', authMiddleware, async (req, res) => {
       res.status(404).send('Scraped data not found');
     }
   } catch (error) {
-    if (error.message === 'MarketScreener Link Not Found') {
-      res.status(404).send('MarketScreener link not found');
-    } else {
-      console.error('Error fetching data:', error);
-      res.status(500).send('Error fetching data');
-    }
+    next(error);
   }
 });
 
@@ -113,6 +122,20 @@ app.post('/login', async (req, res) => {
     console.error('Error logging in:', error);
     res.status(500).json({ error: 'An error occurred while logging in' });
   }
+});
+
+// Error handling middleware
+app.use(errorHandler);
+
+// Error handling for uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
 
 app.listen(port, () => {
