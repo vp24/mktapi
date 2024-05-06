@@ -104,17 +104,20 @@ app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     console.log('Received login request for username:', username);
-    console.log('Password provided:', password); // Add this line
+
     const user = await User.findOne({ username });
     if (!user) {
       console.log('User not found:', username);
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    console.log('Hashed password from the database:', user.password); // Add this line
+    // Hash the provided password
+    const hashedPassword = await bcrypt.hash(password, 10); // Use the appropriate salt rounds value
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log('Password comparison result:', isPasswordValid); // Add this line
+    // Compare the hashed passwords
+    const isPasswordValid = await bcrypt.compare(user.password, hashedPassword);
+    console.log('Password comparison result:', isPasswordValid);
+
     if (!isPasswordValid) {
       console.log('Invalid password for user:', username);
       return res.status(401).json({ error: 'Invalid username or password' });
